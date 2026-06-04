@@ -1,44 +1,118 @@
 .hero {
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(20px, 6vw, 40px);
+  display: grid;
+  place-items: center;
   padding: 56px 24px;
-  text-align: center;
   background: radial-gradient(circle at 50% 28%, #1a0a08 0%, #000 72%);
   color: #fca5a5;
   overflow: hidden;
 }
 
+.hero__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(24px, 6vw, 40px);
+  width: 100%;
+  max-width: 560px;
+}
+
 .hero__eye {
-  width: clamp(96px, 34vw, 200px);
+  width: clamp(96px, 32vw, 200px);
   aspect-ratio: 1;
+  border-radius: 50%;
+  padding: 4%;
+  /* red spill from the lens onto the chrome ring (follows the light),
+     layered over a thin chrome ring lit from two sides */
+  background:
+    radial-gradient(
+      circle at calc(50% + var(--gx, 0px)) calc(50% + var(--gy, 0px)),
+      rgba(255, 90, 55, calc(0.45 + 0.5 * var(--focus, 0.25))) 42%,
+      rgba(255, 70, 40, calc(0.25 + 0.4 * var(--focus, 0.25))) 50%,
+      rgba(255, 55, 30, 0.18) 60%,
+      transparent 72%
+    ),
+    conic-gradient(
+      from 90deg,
+      #6a6a6a,
+      #f6f6f6,
+      #9a9a9a,
+      #2c2c2c,
+      #9a9a9a,
+      #f6f6f6,
+      #6a6a6a,
+      #2c2c2c,
+      #6a6a6a
+    );
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    inset 0 0 10px 1px rgba(255, 50, 20, calc(0.25 + 0.4 * var(--focus, 0.25))),
+    inset 0 0 3px rgba(255, 255, 255, 0.6);
+  /* glow intensity follows the eye's focus, not a timer */
+  filter: drop-shadow(
+    0 0 calc(14px + 42px * var(--focus, 0.25))
+      rgba(255, 45, 26, calc(0.22 + 0.5 * var(--focus, 0.25)))
+  );
+}
+
+.hero__lens {
+  position: relative;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   display: grid;
   place-items: center;
   background: radial-gradient(
-    circle at 50% 50%,
-    #ffffff 0%,
-    #ffd5cf 6%,
+    circle at calc(50% + var(--gx, 0px)) calc(50% + var(--gy, 0px)),
+    #ffe6a0 0%,
+    #ff7a2a 5%,
     #ff2d1a 16%,
-    #b00d04 38%,
-    #3a0502 64%,
-    #050202 100%
+    #c20d04 36%,
+    #5a0602 58%,
+    #170201 78%,
+    #000000 100%
   );
   box-shadow:
-    0 0 60px 12px rgba(255, 45, 26, 0.45),
-    inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
-  animation: hero-pulse 4s ease-in-out infinite;
+    inset 0 0 14px 2px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.9);
+}
+
+/* soft top reflection on the glass */
+.hero__lens::before {
+  content: "";
+  position: absolute;
+  inset: 9% 16% auto 16%;
+  height: 24%;
+  border-radius: 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.22), transparent);
+  filter: blur(2px);
 }
 
 .hero__pupil {
-  width: 22%;
+  width: 7%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: #2b0704;
-  box-shadow: 0 0 16px 4px rgba(0, 0, 0, 0.6);
+  background: #ffe27a;
+  transform: translate(var(--gx, 0px), var(--gy, 0px));
+  box-shadow:
+    0 0 calc(6px + 8px * var(--focus, 0.25)) calc(2px + 2px * var(--focus, 0.25))
+      rgba(255, 210, 90, 0.95),
+    0 0 calc(16px + 20px * var(--focus, 0.25))
+      calc(5px + 6px * var(--focus, 0.25))
+      rgba(255, 90, 30, calc(0.4 + 0.3 * var(--focus, 0.25)));
+}
+
+.hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(14px, 3vw, 20px);
+}
+
+.hero__name {
+  width: min(92vw, 520px);
+  margin: 0;
 }
 
 .hero__glow {
@@ -46,31 +120,75 @@
     drop-shadow(0 0 18px rgba(255, 45, 26, 0.4));
 }
 
-.hero__label {
-  opacity: 0.92;
-}
-
-.hero__name {
-  width: min(92vw, 560px);
+.hero__role {
   margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: clamp(13px, 3.4vw, 15px);
+  letter-spacing: 0.04em;
+  color: #fca5a5;
+  text-wrap: pretty;
 }
 
 .hero__line {
-  max-width: 36ch;
+  max-width: 60ch;
   margin: 0;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: clamp(13px, 3.6vw, 16px);
-  line-height: 1.6;
+  font-size: clamp(13px, 3.6vw, 15px);
+  line-height: 1.65;
   color: #f5b8b0;
+  text-wrap: pretty;
 }
 
-.hero__meta {
-  margin: 0;
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #9b1c1c;
+.hero__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.hero__links a {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #ff7a6a;
+  border: 1px solid rgba(255, 90, 71, 0.28);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.hero__links a:hover {
+  color: #ffd5cf;
+  border-color: #ff5a47;
+  background: rgba(255, 90, 71, 0.1);
+}
+
+/* the touched LED and its neighbours go dark; on relight they flare
+   brighter and almost orange, then settle back to normal.
+   Uses filter (not opacity) so it composes with the flicker animations. */
+.hero .digital-font__pixel--on.led-off {
+  filter: opacity(0);
+  transition: filter 0.13s ease;
+}
+
+.hero .digital-font__pixel--on.led-relight {
+  animation: led-relight 0.65s ease-out;
+}
+
+@keyframes led-relight {
+  0% {
+    filter: opacity(0.05) brightness(1);
+  }
+  22% {
+    filter: opacity(1) brightness(2.4) saturate(1.4) hue-rotate(22deg);
+  }
+  55% {
+    filter: opacity(1) brightness(1.5) saturate(1.2) hue-rotate(10deg);
+  }
+  100% {
+    filter: opacity(1);
+  }
 }
 
 /* failing LEDs: a few lit pixels flicker, dim or nearly die */
@@ -141,28 +259,40 @@
   }
 }
 
-@keyframes hero-pulse {
-  0%,
-  100% {
-    box-shadow:
-      0 0 50px 8px rgba(255, 45, 26, 0.35),
-      inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
-  }
-  50% {
-    box-shadow:
-      0 0 84px 20px rgba(255, 45, 26, 0.62),
-      inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
-  }
-}
-
-@media (min-width: 720px) {
+/* desktop: two-column console layout */
+@media (min-width: 900px) {
   .hero {
-    gap: 44px;
-    padding: 80px 32px;
+    padding: 80px 48px;
+  }
+
+  .hero__stage {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: left;
+    gap: clamp(48px, 6vw, 88px);
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .hero__eye {
+    width: clamp(170px, 18vw, 240px);
+  }
+
+  .hero__content {
+    align-items: flex-start;
   }
 
   .hero__name {
-    width: min(78vw, 620px);
+    width: min(48vw, 560px);
+  }
+
+  .hero__links {
+    justify-content: flex-start;
+  }
+
+  .hero__eye {
+    padding: 3.5%;
   }
 }
 
@@ -170,5 +300,10 @@
   .hero__eye,
   .hero .digital-font__pixel--on {
     animation: none;
+  }
+
+  .hero .digital-font__pixel--on,
+  .hero .digital-font__pixel--on:hover {
+    transition: none;
   }
 }

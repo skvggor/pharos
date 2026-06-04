@@ -6,9 +6,15 @@ zones for accents, ascenders, x-height and descenders.
 
 <p align="center">
   <img
-    src="docs/hero.png"
-    alt="Demo hero: the name skvggor rendered in the pixel font with a glowing red display and failing LEDs"
-    width="320"
+    src="docs/hero-desktop.png"
+    alt="Desktop demo hero: the name skvggor in the pixel font next to a glowing red display, with failing LEDs and real profile details"
+    width="640"
+  />
+  <br />
+  <img
+    src="docs/hero-mobile.png"
+    alt="Mobile demo hero: the same hero stacked into a single column"
+    width="240"
   />
 </p>
 
