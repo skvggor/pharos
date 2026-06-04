@@ -19,13 +19,14 @@ export interface PixelTextProps
   smoothness?: number;
   proportional?: boolean;
   spaceWidth?: number;
+  renderOff?: boolean;
   fluid?: boolean;
   gapRatio?: number;
   letterSpacingRatio?: number;
   "aria-label"?: string;
 }
 
-type PixelStyle = CSSProperties & Record<`--df-${string}`, string | number>;
+type PixelStyle = CSSProperties & Record<`--ph-${string}`, string | number>;
 
 function toCssLength(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
@@ -51,6 +52,7 @@ export function PixelText({
   smoothness = 0.6,
   proportional = true,
   spaceWidth = 4,
+  renderOff = true,
   fluid = false,
   gapRatio = 0.16,
   letterSpacingRatio = 0.5,
@@ -81,28 +83,28 @@ export function PixelText({
       }
       if (index < glyphs.length - 1) units += letterSpacingRatio;
     });
-    rootStyle["--df-units"] = units > 0 ? units : 1;
-    rootStyle["--df-gap-ratio"] = gapRatio;
-    rootStyle["--df-letter-ratio"] = letterSpacingRatio;
+    rootStyle["--ph-units"] = units > 0 ? units : 1;
+    rootStyle["--ph-gap-ratio"] = gapRatio;
+    rootStyle["--ph-letter-ratio"] = letterSpacingRatio;
   } else {
     if (pixelSize !== undefined)
-      rootStyle["--df-pixel-size"] = toCssLength(pixelSize);
-    if (gap !== undefined) rootStyle["--df-gap"] = toCssLength(gap);
+      rootStyle["--ph-pixel-size"] = toCssLength(pixelSize);
+    if (gap !== undefined) rootStyle["--ph-gap"] = toCssLength(gap);
     if (letterSpacing !== undefined)
-      rootStyle["--df-letter-spacing"] = toCssLength(letterSpacing);
+      rootStyle["--ph-letter-spacing"] = toCssLength(letterSpacing);
   }
-  if (color !== undefined) rootStyle["--df-on-color"] = color;
-  if (offColor !== undefined) rootStyle["--df-off-color"] = offColor;
+  if (color !== undefined) rootStyle["--ph-on-color"] = color;
+  if (offColor !== undefined) rootStyle["--ph-off-color"] = offColor;
 
   // Smart corners emit per-corner border-radius, which only affects square-ish
   // shapes; for dot/diamond/ring the shape already owns border-radius/clip-path.
   const roundCorners =
     smartCorners && (pixelShape === "square" || pixelShape === "squircle");
-  const cornerRadius = `calc(var(--df-pixel-size) * ${smoothness / 2})`;
+  const cornerRadius = `calc(var(--ph-pixel-size) * ${smoothness / 2})`;
   const rootClassName = [
-    "digital-font",
-    `df-shape-${pixelShape}`,
-    fluid && "digital-font--fluid",
+    "pharos",
+    `ph-shape-${pixelShape}`,
+    fluid && "pharos--fluid",
     className,
   ]
     .filter(Boolean)
@@ -130,10 +132,10 @@ export function PixelText({
             <span
               key={`${glyph.character}-${glyphIndex}`}
               aria-hidden="true"
-              className="digital-font__space"
+              className="pharos__space"
               style={
                 {
-                  width: `calc(var(--df-pixel-size) * ${spaceWidth})`,
+                  width: `calc(var(--ph-pixel-size) * ${spaceWidth})`,
                 } as PixelStyle
               }
             />
@@ -146,27 +148,37 @@ export function PixelText({
           <span
             key={`${glyph.character}-${glyphIndex}`}
             aria-hidden="true"
-            className="digital-font__char"
-            style={{ "--df-cols": end - start + 1 } as PixelStyle}
+            className="pharos__char"
+            style={
+              {
+                "--ph-cols": end - start + 1,
+                "--ph-rows": METRICS.height,
+              } as PixelStyle
+            }
           >
             {glyph.matrix.flatMap((row, rowIndex) =>
               row.slice(start, end + 1).map((cell, sliceIndex) => {
                 const columnIndex = start + sliceIndex;
                 const lit = isLit(cell);
-                const classes = ["digital-font__pixel"];
+                if (!renderOff && !lit) return null;
+                const classes = ["pharos__pixel"];
                 const pixelStyle: PixelStyle = {
-                  "--df-row": rowIndex,
-                  "--df-col": columnIndex,
+                  "--ph-row": rowIndex,
+                  "--ph-col": columnIndex,
                 };
+                if (!renderOff) {
+                  pixelStyle.gridColumn = columnIndex - start + 1;
+                  pixelStyle.gridRow = rowIndex + 1;
+                }
 
                 if (lit) {
-                  classes.push("digital-font__pixel--on");
-                  pixelStyle["--df-i"] = litIndex++;
-                  pixelStyle["--df-n"] = litTotal;
+                  classes.push("pharos__pixel--on");
+                  pixelStyle["--ph-i"] = litIndex++;
+                  pixelStyle["--ph-n"] = litTotal;
                 }
 
                 if (cell !== "on" && cell !== "off") {
-                  classes.push(`df-tri-${cell}`);
+                  classes.push(`ph-tri-${cell}`);
                 } else if (roundCorners && cell === "on") {
                   const tl =
                     !isFilled(glyph.matrix, rowIndex - 1, columnIndex) &&

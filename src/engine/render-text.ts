@@ -1,8 +1,25 @@
 import { emptyMatrix, parseGlyph } from "@engine/parse-glyph";
 import { FALLBACK_CHARACTER, GLYPHS } from "@glyphs/registry";
-import type { PixelMatrix, RenderedGlyph } from "@domain/index";
+import type { GlyphSource, PixelMatrix, RenderedGlyph } from "@domain/index";
 
 const glyphCache = new Map<string, PixelMatrix>();
+
+/**
+ * Register (or override) a glyph at runtime. The source is validated against
+ * the canvas metrics and the parsed matrix cache is invalidated.
+ */
+export function registerGlyph(character: string, source: GlyphSource): void {
+  if (character.length !== 1) {
+    throw new Error(`registerGlyph expects a single character, got "${character}".`);
+  }
+  parseGlyph(source);
+  GLYPHS[character] = source;
+  glyphCache.delete(character);
+}
+
+export function getCharacters(): string[] {
+  return Object.keys(GLYPHS);
+}
 
 export function getGlyphMatrix(character: string): PixelMatrix | undefined {
   const source = GLYPHS[character];

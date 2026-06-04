@@ -1,84 +1,84 @@
-.digital-font {
-  --df-pixel-size: 6px;
-  --df-gap: 1px;
-  --df-letter-spacing: calc(var(--df-pixel-size) * 0.5);
-  --df-on-color: currentColor;
-  --df-off-color: transparent;
+.pharos {
+  --ph-pixel-size: 6px;
+  --ph-gap: 1px;
+  --ph-letter-spacing: calc(var(--ph-pixel-size) * 0.5);
+  --ph-on-color: currentColor;
+  --ph-off-color: transparent;
 
   display: inline-flex;
   flex-flow: row nowrap;
   align-items: flex-start;
-  gap: var(--df-letter-spacing);
+  gap: var(--ph-letter-spacing);
   line-height: 0;
 }
 
-.digital-font--fluid {
+.pharos--fluid {
   display: flex;
   width: 100%;
   container-type: inline-size;
-  --df-pixel-size: calc(100cqw / var(--df-units));
-  --df-gap: calc(var(--df-pixel-size) * var(--df-gap-ratio));
-  --df-letter-spacing: calc(var(--df-pixel-size) * var(--df-letter-ratio));
+  --ph-pixel-size: calc(100cqw / var(--ph-units));
+  --ph-gap: calc(var(--ph-pixel-size) * var(--ph-gap-ratio));
+  --ph-letter-spacing: calc(var(--ph-pixel-size) * var(--ph-letter-ratio));
 }
 
-.digital-font__char {
+.pharos__char {
   display: grid;
-  grid-template-columns: repeat(var(--df-cols), var(--df-pixel-size));
-  grid-auto-rows: var(--df-pixel-size);
-  gap: var(--df-gap);
+  grid-template-columns: repeat(var(--ph-cols), var(--ph-pixel-size));
+  grid-template-rows: repeat(var(--ph-rows), var(--ph-pixel-size));
+  gap: var(--ph-gap);
 }
 
-.digital-font__space {
+.pharos__space {
   flex: none;
 }
 
-.digital-font__pixel {
-  width: var(--df-pixel-size);
-  height: var(--df-pixel-size);
-  background-color: var(--df-off-color);
+.pharos__pixel {
+  width: var(--ph-pixel-size);
+  height: var(--ph-pixel-size);
+  background-color: var(--ph-off-color);
 }
 
-.digital-font__pixel--on {
-  background-color: var(--df-on-color);
+.pharos__pixel--on {
+  background-color: var(--ph-on-color);
 }
 
 /* pixel shapes */
-.df-shape-squircle .digital-font__pixel {
+.ph-shape-squircle .pharos__pixel {
   border-radius: 28%;
 }
 
-.df-shape-dot .digital-font__pixel {
+.ph-shape-dot .pharos__pixel {
   border-radius: 50%;
 }
 
-.df-shape-diamond .digital-font__pixel {
+.ph-shape-diamond .pharos__pixel {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-.df-shape-ring .digital-font__pixel--on {
+.ph-shape-ring .pharos__pixel--on {
   background-color: transparent;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 max(1px, calc(var(--df-pixel-size) * 0.24))
-    var(--df-on-color);
+  box-shadow: inset 0 0 0 max(1px, calc(var(--ph-pixel-size) * 0.24))
+    var(--ph-on-color);
 }
 
 /* subpixel corner triangles (override shape) */
-.digital-font__pixel.df-tri-tl {
+.pharos__pixel.ph-tri-tl {
   clip-path: polygon(0 0, 100% 0, 0 100%);
   border-radius: 0;
 }
 
-.digital-font__pixel.df-tri-tr {
+.pharos__pixel.ph-tri-tr {
   clip-path: polygon(0 0, 100% 0, 100% 100%);
   border-radius: 0;
 }
 
-.digital-font__pixel.df-tri-bl {
+.pharos__pixel.ph-tri-bl {
   clip-path: polygon(0 0, 0 100%, 100% 100%);
   border-radius: 0;
 }
 
-.digital-font__pixel.df-tri-br {
+.pharos__pixel.ph-tri-br {
   clip-path: polygon(100% 0, 100% 100%, 0 100%);
   border-radius: 0;
 }

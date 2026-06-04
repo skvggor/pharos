@@ -1,10 +1,17 @@
 import { isLit, METRICS } from "@engine/metrics";
 import {
+  getCharacters,
   getGlyphMatrix,
   hasGlyph,
+  registerGlyph,
   renderText,
 } from "@engine/render-text";
+import type { GlyphSource } from "@domain/index";
 import { describe, expect, it } from "vitest";
+
+function fullSource(): GlyphSource {
+  return Array.from({ length: METRICS.height }, () => ".".repeat(METRICS.width));
+}
 
 describe("getGlyphMatrix", () => {
   it("returns a matrix for a known character", () => {
@@ -27,6 +34,39 @@ describe("hasGlyph", () => {
   it("detects known and unknown characters", () => {
     expect(hasGlyph("O")).toBe(true);
     expect(hasGlyph("¥")).toBe(false);
+  });
+});
+
+describe("registerGlyph", () => {
+  it("registers a new glyph and renders it", () => {
+    const source = fullSource();
+    const withInk = [...source];
+    withInk[5] = "#".repeat(METRICS.width);
+
+    registerGlyph("¶", withInk);
+
+    expect(hasGlyph("¶")).toBe(true);
+    expect(getCharacters()).toContain("¶");
+    expect(renderText("¶")[0].isFallback).toBe(false);
+  });
+
+  it("invalidates the cache when overriding a glyph", () => {
+    registerGlyph("¤", fullSource());
+    const blank = getGlyphMatrix("¤");
+    expect(blank?.flat().every((cell) => cell === "off")).toBe(true);
+
+    const lit = [...fullSource()];
+    lit[0] = "#".repeat(METRICS.width);
+    registerGlyph("¤", lit);
+    expect(getGlyphMatrix("¤")?.[0].every(isLit)).toBe(true);
+  });
+
+  it("rejects multi-character keys", () => {
+    expect(() => registerGlyph("ab", fullSource())).toThrow(/single character/);
+  });
+
+  it("rejects glyphs with the wrong dimensions", () => {
+    expect(() => registerGlyph("§", ["###"])).toThrow();
   });
 });
 

@@ -1,4 +1,4 @@
-# digital-font
+# Pharos
 
 A pixel "display" font for React: each character is a glyph drawn on a
 `12×18` grid and rendered as a field of squares. Serif glyphs, with vertical
@@ -6,29 +6,23 @@ zones for accents, ascenders, x-height and descenders.
 
 <p align="center">
   <img
-    src="docs/hero-desktop.png"
-    alt="Desktop demo hero: the name skvggor in the pixel font next to a glowing red display, with failing LEDs and real profile details"
-    width="640"
-  />
-  <br />
-  <img
-    src="docs/hero-mobile.png"
-    alt="Mobile demo hero: the same hero stacked into a single column"
-    width="240"
+    src="docs/showcase.png"
+    alt="Pharos demo shown in a desktop browser and a phone: the name skvggor rendered in the serif pixel font beside a glowing red display"
+    width="720"
   />
 </p>
 
 ## Installation
 
 ```bash
-npm install digital-font
+npm install @skvggor/pharos
 ```
 
 ## Usage
 
 ```tsx
-import { PixelText } from "digital-font";
-import "digital-font/styles.css";
+import { PixelText } from "@skvggor/pharos";
+import "@skvggor/pharos/styles.css";
 
 export function App() {
   return <PixelText text="HELLO" pixelSize={14} gap={2} color="#16a34a" />;
@@ -50,6 +44,7 @@ export function App() {
 | `smoothness`         | `number`           | `0.6`          | Rounding strength (`0` retro → `1` organic).                          |
 | `proportional`       | `boolean`          | `true`         | Trim per-glyph side-bearing (tight kerning). `false` = monospace.     |
 | `spaceWidth`         | `number`           | `4`            | Space character width, in cells.                                      |
+| `renderOff`          | `boolean`          | `true`         | Render unlit cells too (needed to animate them); `false` = lighter DOM. |
 | `fluid`              | `boolean`          | `false`        | Width follows the parent; height keeps the aspect ratio.             |
 | `gapRatio`           | `number`           | `0.16`         | Pixel gap as a fraction of the pixel (fluid mode).                   |
 | `letterSpacingRatio` | `number`           | `0.5`          | Letter gap as a fraction of the pixel (fluid mode).                  |
@@ -82,16 +77,16 @@ follows to keep the aspect ratio, with no runtime measurement.
 Every pixel (lit and unlit) is rendered as a DOM element. Each lit pixel
 exposes CSS variables so it can be animated individually:
 
-- `--df-i`: sequential index of the lit pixel across the whole text.
-- `--df-n`: total number of lit pixels.
-- `--df-row` / `--df-col`: pixel position within the character matrix.
+- `--ph-i`: sequential index of the lit pixel across the whole text.
+- `--ph-n`: total number of lit pixels.
+- `--ph-row` / `--ph-col`: pixel position within the character matrix.
 
 Sweep example:
 
 ```css
-.my-class .digital-font__pixel--on {
+.my-class .pharos__pixel--on {
   animation: light-up 1.6s ease-in-out infinite alternate;
-  animation-delay: calc(var(--df-i) * 28ms);
+  animation-delay: calc(var(--ph-i) * 28ms);
 }
 
 @keyframes light-up {
@@ -112,6 +107,41 @@ Sweep example:
 Glyphs are authored as compact string matrices: `#` lit, `.` empty, and the
 numpad-mnemonic markers `7 9 1 3` for corner triangles (subpixel smoothing).
 
+## Character set
+
+`A–Z`, `a–z`, `0–9`, the accented `á`, the punctuation `, . !` and space. Use
+`getCharacters()` to list what is available.
+
+## Extending glyphs
+
+Register your own glyphs (or override existing ones) at runtime. The source is
+validated against the canvas metrics and the cache is invalidated:
+
+```ts
+import { registerGlyph } from "@skvggor/pharos";
+
+registerGlyph("€", [
+  "............",
+  "............",
+  "............",
+  "....#####...",
+  "...##.......",
+  "...##.......",
+  ".#######....",
+  "...##.......",
+  ".#######....",
+  "...##.......",
+  "...##.......",
+  "...##.......",
+  "....#####...",
+  "............",
+  "............",
+  "............",
+  "............",
+  "............",
+]);
+```
+
 ## Development
 
 ```bash
@@ -119,11 +149,8 @@ npm run dev            # visual demo
 npm test               # tests
 npm run test:coverage  # tests + coverage
 npm run build          # build the library + types
+npm run build:demo     # build the demo (GitHub Pages)
 ```
 
-## Status
-
-The current glyph set is a **pilot** to validate the serif aesthetic and the
-rendering pipeline: uppercase `A E H I L M O T`, lowercase `a d l n o p u`,
-the accented `á`, and `, . !` plus space. The full character set (Latin
-letters, digits and punctuation) is the next step, drawn to the same standard.
+The demo is deployed to GitHub Pages on every push via GitHub Actions
+(`.github/workflows/deploy.yml`).

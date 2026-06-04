@@ -1,22 +1,46 @@
 {
-  "name": "digital-font",
-  "version": "0.0.0",
-  "description": "CSS pixel display font rendered as a grid of squares, with serif glyphs.",
+  "name": "@skvggor/pharos",
+  "version": "0.1.0",
+  "description": "A serif pixel display font for React, rendered as a grid of glowing dots.",
   "type": "module",
   "license": "MIT",
-  "main": "./dist/digital-font.cjs",
-  "module": "./dist/digital-font.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": "Marcos Lima (https://skvggor.dev)",
+  "homepage": "https://skvggor.github.io/pharos/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skvggor/pharos.git"
+  },
+  "bugs": {
+    "url": "https://github.com/skvggor/pharos/issues"
+  },
+  "keywords": [
+    "react",
+    "pixel-font",
+    "display-font",
+    "dot-matrix",
+    "led",
+    "bitmap-font",
+    "serif",
+    "css"
+  ],
+  "main": "./dist/pharos.cjs",
+  "module": "./dist/pharos.js",
   "types": "./dist/src/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
-      "import": "./dist/digital-font.js",
-      "require": "./dist/digital-font.cjs"
+      "import": "./dist/pharos.js",
+      "require": "./dist/pharos.cjs"
     },
-    "./styles.css": "./dist/digital-font.css"
+    "./styles.css": "./dist/pharos.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "sideEffects": [
     "**/*.css"
@@ -24,11 +48,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:demo": "vite build --mode demo",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
   },
   "peerDependencies": {
     "react": ">=18",
