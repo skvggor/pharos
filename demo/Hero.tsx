@@ -1,7 +1,66 @@
 import { PixelText } from "@components/PixelText";
 import { GithubLogo, GlobeHemisphereWest, LinkedinLogo } from "@phosphor-icons/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./hero.css";
+
+type Phase = "idle" | "countdown" | "matrix";
+
+const COUNTDOWN_FROM = 9;
+
+function MatrixRain() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+
+    const glyphs = "アカサタナハマヤラワ0123456789=+*<>".split("");
+    const fontSize = 16;
+    let columns = 0;
+    let drops: number[] = [];
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.ceil(canvas.width / fontSize);
+      drops = Array.from({ length: columns }, () => Math.random() * -60);
+    };
+    resize();
+
+    let raf = 0;
+    let last = 0;
+    const draw = () => {
+      context.fillStyle = "rgba(0, 10, 4, 0.09)";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.font = `${fontSize}px monospace`;
+      for (let i = 0; i < columns; i++) {
+        const glyph = glyphs[Math.floor(Math.random() * glyphs.length)];
+        const y = drops[i] * fontSize;
+        context.fillStyle = Math.random() > 0.97 ? "#d7ffe3" : "#22c55e";
+        context.fillText(glyph, i * fontSize, y);
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        else drops[i] += 1;
+      }
+    };
+    const loop = (time: number) => {
+      if (time - last > 55) {
+        draw();
+        last = time;
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    window.addEventListener("resize", resize);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="hero__rain" aria-hidden="true" />;
+}
 
 const LINKS = [
   {
@@ -22,8 +81,29 @@ const LINKS = [
 ];
 
 export function Hero() {
-  const eyeRef = useRef<HTMLDivElement>(null);
+  const eyeRef = useRef<HTMLButtonElement>(null);
   const nameRef = useRef<HTMLHeadingElement>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [count, setCount] = useState(COUNTDOWN_FROM);
+
+  const onEyeActivate = () => {
+    if (phase === "idle") {
+      setCount(COUNTDOWN_FROM);
+      setPhase("countdown");
+    } else if (phase === "matrix") {
+      setPhase("idle");
+    }
+  };
+
+  useEffect(() => {
+    if (phase !== "countdown") return;
+    if (count <= 0) {
+      const timer = window.setTimeout(() => setPhase("matrix"), 700);
+      return () => window.clearTimeout(timer);
+    }
+    const timer = window.setTimeout(() => setCount((value) => value - 1), 450);
+    return () => window.clearTimeout(timer);
+  }, [phase, count]);
 
   useEffect(() => {
     const eye = eyeRef.current;
@@ -104,7 +184,7 @@ export function Hero() {
 
     const sample = () => {
       const pixels = Array.from(
-        container.querySelectorAll<HTMLElement>(".digital-font__pixel--on"),
+        container.querySelectorAll<HTMLElement>(".pharos__pixel--on"),
       );
       cells = pixels.map((el) => {
         const r = el.getBoundingClientRect();
@@ -172,13 +252,21 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="hero">
+    <section className={phase === "matrix" ? "hero hero--matrix" : "hero"}>
+      {phase === "matrix" && <MatrixRain />}
+
       <div className="hero__stage">
-        <div className="hero__eye" ref={eyeRef} aria-hidden="true">
+        <button
+          type="button"
+          className="hero__eye"
+          ref={eyeRef}
+          aria-label="Activate"
+          onClick={onEyeActivate}
+        >
           <div className="hero__lens">
             <span className="hero__pupil" />
           </div>
-        </div>
+        </button>
 
         <div className="hero__content">
           <h1 className="hero__name hero__glow" ref={nameRef}>
@@ -186,7 +274,7 @@ export function Hero() {
               text="skvggor"
               fluid
               pixelShape="dot"
-              color="#ff2d1a"
+              color={phase === "matrix" ? "#22c55e" : "#ff2d1a"}
               aria-label="skvggor"
             />
           </h1>
@@ -216,6 +304,20 @@ export function Hero() {
           </nav>
         </div>
       </div>
+
+      {phase === "countdown" && (
+        <div className="hero__countdown">
+          <div className="hero__count">
+            <PixelText
+              text={String(Math.max(0, count))}
+              fluid
+              pixelShape="dot"
+              color="#86efac"
+              aria-label={`${Math.max(0, count)}`}
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
