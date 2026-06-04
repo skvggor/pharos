@@ -1,7 +1,7 @@
 {
   "name": "@skvggor/pharos",
   "version": "0.1.0",
-  "description": "A serif pixel display font for React, rendered as a grid of glowing dots.",
+  "description": "A serif pixel display font for React — text as a configurable grid of pixels.",
   "type": "module",
   "license": "MIT",
   "publishConfig": {
