@@ -1,6 +1,7 @@
 import { PixelText } from "@components/PixelText";
 import { GithubLogo, GlobeHemisphereWest, LinkedinLogo } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import type { TransitionEvent } from "react";
 import "./hero.css";
 
 type Phase = "idle" | "countdown" | "matrix";
@@ -82,17 +83,27 @@ const LINKS = [
 
 export function Hero() {
   const eyeRef = useRef<HTMLButtonElement>(null);
-  const nameRef = useRef<HTMLHeadingElement>(null);
+  const ledsRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [count, setCount] = useState(COUNTDOWN_FROM);
+  const [holding, setHolding] = useState(false);
 
-  const onEyeActivate = () => {
-    if (phase === "idle") {
-      setCount(COUNTDOWN_FROM);
-      setPhase("countdown");
-    } else if (phase === "matrix") {
-      setPhase("idle");
-    }
+  // Hover/hold the eye to darken the screen; complete it to start the
+  // countdown. Leave before it finishes and it just fades back.
+  const startHold = () => {
+    if (phase === "idle") setHolding(true);
+  };
+  const stopHold = () => setHolding(false);
+
+  const onEyeClick = () => {
+    if (phase === "matrix") setPhase("idle");
+  };
+
+  const onFadeEnd = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== "opacity" || !holding) return;
+    setHolding(false);
+    setCount(COUNTDOWN_FROM);
+    setPhase("countdown");
   };
 
   useEffect(() => {
@@ -154,6 +165,9 @@ export function Hero() {
     };
 
     window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onMove);
+    window.addEventListener("pointerup", relax);
+    window.addEventListener("pointercancel", relax);
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     document.addEventListener("mouseleave", relax);
@@ -163,6 +177,9 @@ export function Hero() {
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("pointerup", relax);
+      window.removeEventListener("pointercancel", relax);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
       document.removeEventListener("mouseleave", relax);
@@ -171,7 +188,7 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
-    const container = nameRef.current;
+    const container = ledsRef.current;
     if (!container) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
@@ -180,9 +197,12 @@ export function Hero() {
     let pointerX = -9999;
     let pointerY = -9999;
     let radius = 44;
-    let cells: { el: HTMLElement; x: number; y: number; off: boolean }[] = [];
+    // Positions are cached relative to the container, so the effect stays
+    // correct when the container moves (scroll) or the fluid text resizes.
+    let cells: { el: HTMLElement; rx: number; ry: number; off: boolean }[] = [];
 
     const sample = () => {
+      const bounds = container.getBoundingClientRect();
       const pixels = Array.from(
         container.querySelectorAll<HTMLElement>(".pharos__pixel--on"),
       );
@@ -190,8 +210,8 @@ export function Hero() {
         const r = el.getBoundingClientRect();
         return {
           el,
-          x: r.left + r.width / 2,
-          y: r.top + r.height / 2,
+          rx: r.left + r.width / 2 - bounds.left,
+          ry: r.top + r.height / 2 - bounds.top,
           off: false,
         };
       });
@@ -209,10 +229,11 @@ export function Hero() {
     };
 
     const tick = () => {
+      const bounds = container.getBoundingClientRect();
       const reach = radius * radius;
       for (const cell of cells) {
-        const dx = cell.x - pointerX;
-        const dy = cell.y - pointerY;
+        const dx = bounds.left + cell.rx - pointerX;
+        const dy = bounds.top + cell.ry - pointerY;
         const inside = dx * dx + dy * dy < reach;
         if (inside && !cell.off) {
           cell.off = true;
@@ -234,20 +255,23 @@ export function Hero() {
       frame = requestAnimationFrame(tick);
     });
 
+    const observer = new ResizeObserver(sample);
+    observer.observe(container);
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerdown", onMove);
+    window.addEventListener("pointerup", onLeave);
+    window.addEventListener("pointercancel", onLeave);
     document.addEventListener("mouseleave", onLeave);
-    window.addEventListener("resize", sample);
-    window.addEventListener("scroll", sample, { passive: true });
 
     return () => {
       cancelAnimationFrame(init);
       cancelAnimationFrame(frame);
+      observer.disconnect();
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("pointerup", onLeave);
+      window.removeEventListener("pointercancel", onLeave);
       document.removeEventListener("mouseleave", onLeave);
-      window.removeEventListener("resize", sample);
-      window.removeEventListener("scroll", sample);
     };
   }, []);
 
@@ -255,31 +279,80 @@ export function Hero() {
     <section className={phase === "matrix" ? "hero hero--matrix" : "hero"}>
       {phase === "matrix" && <MatrixRain />}
 
+      <a
+        className="hero__repo"
+        href="https://github.com/skvggor/pharos"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <GithubLogo size={18} weight="bold" />
+        <span>skvggor/pharos</span>
+      </a>
+
       <div className="hero__stage">
         <button
           type="button"
           className="hero__eye"
           ref={eyeRef}
           aria-label="Activate"
-          onClick={onEyeActivate}
+          onClick={onEyeClick}
+          onPointerEnter={startHold}
+          onPointerLeave={stopHold}
         >
           <div className="hero__lens">
             <span className="hero__pupil" />
+            <svg
+              className="hero__etch"
+              viewBox="0 0 100 100"
+              aria-hidden="true"
+            >
+              <defs>
+                <path
+                  id="hero-etch-path"
+                  fill="none"
+                  d="M 16,72 A 41,41 0 0 0 84,72"
+                />
+              </defs>
+              <text textAnchor="middle">
+                <textPath href="#hero-etch-path" startOffset="50%">
+                  {"DON'T TOUCH!"}
+                </textPath>
+              </text>
+            </svg>
           </div>
         </button>
 
-        <div className="hero__content">
-          <h1 className="hero__name hero__glow" ref={nameRef}>
+        <div className="hero__content" ref={ledsRef}>
+          <h1 className="hero__name hero__glow">
             <PixelText
-              text="skvggor"
+              text="Pharos"
               fluid
               pixelShape="dot"
               color={phase === "matrix" ? "#22c55e" : "#ff2d1a"}
-              aria-label="skvggor"
+              aria-label="Pharos"
             />
           </h1>
 
-          <p className="hero__role">SWE</p>
+          <p className="hero__tagline">
+            A serif pixel display font for React — each character is a glyph on
+            a grid, rendered as configurable squares, dots, diamonds or rings.
+          </p>
+
+          <div className="hero__divider" aria-hidden="true">
+            <PixelText
+              text="-------"
+              fluid
+              pixelShape="dot"
+              color={phase === "matrix" ? "#22c55e" : "#ff2d1a"}
+            />
+          </div>
+
+          <p className="hero__role">
+            Made by{" "}
+            <a href="https://skvggor.dev" target="_blank" rel="noreferrer">
+              skvggor
+            </a>
+          </p>
 
           <p className="hero__line">
             Front-end web developer with 15 years on large-scale projects across
@@ -304,6 +377,13 @@ export function Hero() {
           </nav>
         </div>
       </div>
+
+      {phase === "idle" && (
+        <div
+          className={holding ? "hero__fade is-holding" : "hero__fade"}
+          onTransitionEnd={onFadeEnd}
+        />
+      )}
 
       {phase === "countdown" && (
         <div className="hero__countdown">

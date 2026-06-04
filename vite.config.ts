@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => {
 
   // Library build.
   return {
+    // never copy the demo's public/ assets into the published package
+    publicDir: false,
     resolve: { alias },
     plugins: [
       react(),
