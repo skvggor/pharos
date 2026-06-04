@@ -2,12 +2,12 @@
   min-height: 100svh;
   display: grid;
   place-items: center;
-  padding: 56px 24px;
+  padding: 40px 24px;
   background: radial-gradient(circle at 50% 28%, #1a0a08 0%, #000 72%);
   color: #fca5a5;
-  overflow: hidden;
-  /* route touch gestures to pointer events so the eye and LEDs react to drags */
-  touch-action: none;
+  /* allow vertical scroll (content stays reachable) while horizontal drags
+     still feed the eye/LED pointer effects */
+  touch-action: pan-y;
 }
 
 .hero__repo {
@@ -47,7 +47,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: clamp(24px, 6vw, 40px);
+  gap: clamp(18px, 5vw, 30px);
   width: 100%;
   max-width: 560px;
 }
@@ -120,6 +120,32 @@
     inset 0 0 0 1px rgba(0, 0, 0, 0.9);
 }
 
+/* faint warning etched into the glass */
+.hero__etch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hero__etch text {
+  /* frosted engraving: light strokes that scatter the lens light — brighter
+     as the light intensifies (focus) and with a shadow that shifts with the
+     light direction (gx/gy), so it reacts as the illumination moves */
+  fill: rgba(255, 240, 232, calc(0.08 + 0.4 * var(--focus, 0.25)));
+  filter: drop-shadow(
+    calc(var(--gx, 0px) * 0.2) calc(var(--gy, 0px) * 0.2) 0.3px
+      rgba(0, 0, 0, 0.55)
+  );
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
 /* soft top reflection on the glass */
 .hero__lens::before {
   content: "";
@@ -149,17 +175,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(14px, 3vw, 20px);
+  gap: clamp(10px, 2.2vw, 15px);
 }
 
 .hero__name {
-  width: min(92vw, 520px);
+  width: min(90vw, 470px);
   margin: 0;
 }
 
 .hero__glow {
   filter: drop-shadow(0 0 6px rgba(255, 45, 26, 0.85))
     drop-shadow(0 0 18px rgba(255, 45, 26, 0.4));
+}
+
+.hero__divider {
+  width: min(90vw, 470px);
+  line-height: 0;
+  filter: drop-shadow(0 0 5px rgba(255, 45, 26, 0.85))
+    drop-shadow(0 0 14px rgba(255, 45, 26, 0.4));
+}
+
+.hero__tagline {
+  max-width: 46ch;
+  margin: 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: clamp(14px, 4vw, 18px);
+  line-height: 1.45;
+  color: #fde2dd;
+  text-wrap: pretty;
 }
 
 .hero__role {
@@ -169,6 +212,20 @@
   letter-spacing: 0.04em;
   color: #fca5a5;
   text-wrap: pretty;
+}
+
+.hero__role a {
+  color: #ff7a6a;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 90, 71, 0.4);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.hero__role a:hover {
+  color: #ffd5cf;
+  border-color: #ff5a47;
 }
 
 .hero__line {
@@ -301,6 +358,22 @@
   }
 }
 
+/* easter egg: hold the eye to darken the screen, then the countdown begins */
+.hero__fade {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
+}
+
+.hero__fade.is-holding {
+  opacity: 1;
+  transition: opacity 2.6s linear;
+}
+
 /* easter egg: countdown overlay */
 .hero__countdown {
   position: fixed;
@@ -342,14 +415,33 @@
   color: #86efac;
 }
 
+.hero--matrix .hero__tagline {
+  color: #bbf7d0;
+}
+
 .hero--matrix .hero__role,
 .hero--matrix .hero__line {
   color: #86efac;
 }
 
+.hero--matrix .hero__role a {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.45);
+}
+
+.hero--matrix .hero__role a:hover {
+  color: #d7ffe3;
+  border-color: #22c55e;
+}
+
 .hero--matrix .hero__name {
   filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.85))
     drop-shadow(0 0 18px rgba(34, 197, 94, 0.4));
+}
+
+.hero--matrix .hero__divider {
+  filter: drop-shadow(0 0 5px rgba(34, 197, 94, 0.85))
+    drop-shadow(0 0 14px rgba(34, 197, 94, 0.4));
 }
 
 .hero--matrix .hero__links a {
@@ -432,7 +524,7 @@
 /* desktop: two-column console layout */
 @media (min-width: 900px) {
   .hero {
-    padding: 80px 48px;
+    padding: 52px 48px;
   }
 
   .hero__stage {
@@ -453,8 +545,9 @@
     align-items: flex-start;
   }
 
-  .hero__name {
-    width: min(48vw, 560px);
+  .hero__name,
+  .hero__divider {
+    width: min(44vw, 500px);
   }
 
   .hero__links {
