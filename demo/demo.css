@@ -1,97 +1,10 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
   font-family: system-ui, sans-serif;
 }
 
 body {
   margin: 0;
-  background: #0b0f17;
+  background: #000;
   color: #e5e7eb;
-}
-
-.demo {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 48px 24px 96px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-h1 {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 28px;
-  border-radius: 12px;
-  background: #111827;
-  border: 1px solid #1f2937;
-}
-
-.panel.dark {
-  background: #050608;
-}
-
-.caption {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #9ca3af;
-}
-
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.tag {
-  width: 64px;
-  flex: none;
-  font-size: 11px;
-  color: #6b7280;
-  font-variant-numeric: tabular-nums;
-}
-
-.resizer {
-  resize: horizontal;
-  overflow: auto;
-  width: 100%;
-  min-width: 120px;
-  max-width: 100%;
-  padding: 12px;
-  border: 1px dashed #374151;
-  border-radius: 8px;
-}
-
-.hint {
-  font-size: 11px;
-  color: #6b7280;
-}
-
-.sweep .digital-font__pixel--on {
-  animation: df-sweep 1.6s ease-in-out infinite alternate;
-  animation-delay: calc(var(--df-i) * 28ms);
-}
-
-@keyframes df-sweep {
-  0% {
-    opacity: 0.12;
-    transform: scale(0.6);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
 }

@@ -4,6 +4,14 @@ A pixel "display" font for React: each character is a glyph drawn on a
 `12×18` grid and rendered as a field of squares. Serif glyphs, with vertical
 zones for accents, ascenders, x-height and descenders.
 
+<p align="center">
+  <img
+    src="docs/hero.png"
+    alt="Demo hero: the name skvggor rendered in the pixel font with a glowing red display and failing LEDs"
+    width="320"
+  />
+</p>
+
 ## Installation
 
 ```bash

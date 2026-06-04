@@ -1,0 +1,174 @@
+.hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 6vw, 40px);
+  padding: 56px 24px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 28%, #1a0a08 0%, #000 72%);
+  color: #fca5a5;
+  overflow: hidden;
+}
+
+.hero__eye {
+  width: clamp(96px, 34vw, 200px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(
+    circle at 50% 50%,
+    #ffffff 0%,
+    #ffd5cf 6%,
+    #ff2d1a 16%,
+    #b00d04 38%,
+    #3a0502 64%,
+    #050202 100%
+  );
+  box-shadow:
+    0 0 60px 12px rgba(255, 45, 26, 0.45),
+    inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
+  animation: hero-pulse 4s ease-in-out infinite;
+}
+
+.hero__pupil {
+  width: 22%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #2b0704;
+  box-shadow: 0 0 16px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hero__glow {
+  filter: drop-shadow(0 0 6px rgba(255, 45, 26, 0.85))
+    drop-shadow(0 0 18px rgba(255, 45, 26, 0.4));
+}
+
+.hero__label {
+  opacity: 0.92;
+}
+
+.hero__name {
+  width: min(92vw, 560px);
+  margin: 0;
+}
+
+.hero__line {
+  max-width: 36ch;
+  margin: 0;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: clamp(13px, 3.6vw, 16px);
+  line-height: 1.6;
+  color: #f5b8b0;
+}
+
+.hero__meta {
+  margin: 0;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #9b1c1c;
+}
+
+/* failing LEDs: a few lit pixels flicker, dim or nearly die */
+.hero .digital-font__pixel--on:nth-child(9n + 2) {
+  animation: led-flicker 4.2s steps(1, end) infinite;
+  animation-delay: calc(var(--df-i) * -53ms);
+}
+
+.hero .digital-font__pixel--on:nth-child(14n + 5) {
+  animation: led-dim 2.7s ease-in-out infinite;
+  animation-delay: calc(var(--df-i) * -71ms);
+}
+
+.hero .digital-font__pixel--on:nth-child(23n + 11) {
+  animation: led-dead 6s steps(1, end) infinite;
+  animation-delay: calc(var(--df-i) * -113ms);
+}
+
+@keyframes led-flicker {
+  0%,
+  41%,
+  100% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0.12;
+  }
+  43%,
+  61% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.3;
+  }
+  63%,
+  76% {
+    opacity: 1;
+  }
+  77% {
+    opacity: 0.08;
+  }
+  79% {
+    opacity: 1;
+  }
+}
+
+@keyframes led-dim {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes led-dead {
+  0%,
+  92%,
+  100% {
+    opacity: 0.1;
+  }
+  94% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.1;
+  }
+}
+
+@keyframes hero-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 50px 8px rgba(255, 45, 26, 0.35),
+      inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
+  }
+  50% {
+    box-shadow:
+      0 0 84px 20px rgba(255, 45, 26, 0.62),
+      inset 0 0 24px 6px rgba(0, 0, 0, 0.7);
+  }
+}
+
+@media (min-width: 720px) {
+  .hero {
+    gap: 44px;
+    padding: 80px 32px;
+  }
+
+  .hero__name {
+    width: min(78vw, 620px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__eye,
+  .hero .digital-font__pixel--on {
+    animation: none;
+  }
+}
