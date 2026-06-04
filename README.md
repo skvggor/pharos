@@ -109,8 +109,12 @@ numpad-mnemonic markers `7 9 1 3` for corner triangles (subpixel smoothing).
 
 ## Character set
 
-`A–Z`, `a–z`, `0–9`, the accented `á`, the punctuation `, . !` and space. Use
-`getCharacters()` to list what is available.
+- Letters `A–Z` and `a–z`, digits `0–9`.
+- Accents `á à â ã ä é è ê í î ó ô õ ú ü ñ ç` (plus the matching capitals).
+- Punctuation `, . ! ? : ; - ' " ( ) / @` and space.
+
+Use `getCharacters()` to list everything available. Accented glyphs are
+composed from a base letter plus a diacritic mark, so adding more is cheap.
 
 ## Extending glyphs
 
@@ -152,5 +156,5 @@ npm run build          # build the library + types
 npm run build:demo     # build the demo (GitHub Pages)
 ```
 
-The demo is deployed to GitHub Pages on every push via GitHub Actions
+The demo is deployed to GitHub Pages from `main` via GitHub Actions
 (`.github/workflows/deploy.yml`).
