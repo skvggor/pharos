@@ -12,7 +12,7 @@ function Demo() {
       <h1>digital-font</h1>
 
       <section className="panel">
-        <span className="caption">Olá, Mundo!</span>
+        <span className="caption">accents and punctuation</span>
         <PixelText
           text="Olá, Mundo!"
           pixelShape="dot"
@@ -23,7 +23,7 @@ function Demo() {
       </section>
 
       <section className="panel">
-        <span className="caption">formas de pixel (12×18, serifa)</span>
+        <span className="caption">pixel shapes (12×18 serif)</span>
         <div className="stack">
           {SHAPES.map((shape) => (
             <div key={shape} className="row">
@@ -41,7 +41,7 @@ function Demo() {
       </section>
 
       <section className="panel">
-        <span className="caption">cantos inteligentes (retrô → orgânico)</span>
+        <span className="caption">smart corners (retro → organic)</span>
         <div className="stack">
           {[0, 0.4, 0.8, 1].map((smoothness) => (
             <div key={smoothness} className="row">
@@ -61,7 +61,7 @@ function Demo() {
       </section>
 
       <section className="panel">
-        <span className="caption">subpixel triangular (apex do A · curva do O)</span>
+        <span className="caption">subpixel triangles (A apex · O curve)</span>
         <PixelText
           text="AO"
           pixelShape="square"
@@ -72,12 +72,12 @@ function Demo() {
       </section>
 
       <section className="panel">
-        <span className="caption">kerning — espaçamento proporcional ajustável</span>
+        <span className="caption">kerning — adjustable proportional spacing</span>
         <div className="stack">
           <div className="row">
             <span className="tag">mono</span>
             <PixelText
-              text="Mundo"
+              text="land"
               proportional={false}
               pixelSize={11}
               color="#94a3b8"
@@ -87,7 +87,7 @@ function Demo() {
             <div key={tracking} className="row">
               <span className="tag">{tracking}px</span>
               <PixelText
-                text="Mundo"
+                text="land"
                 letterSpacing={tracking}
                 pixelSize={11}
                 color="#22d3ee"
@@ -98,10 +98,10 @@ function Demo() {
       </section>
 
       <section className="panel">
-        <span className="caption">fluido — largura segue o pai, altura mantém proporção</span>
+        <span className="caption">fluid — width follows parent, height keeps ratio</span>
         <div className="resizer">
           <PixelText
-            text="Olá, Mundo!"
+            text="HELLO"
             fluid
             pixelShape="square"
             smartCorners
@@ -109,11 +109,11 @@ function Demo() {
             color="#fbbf24"
           />
         </div>
-        <span className="hint">arraste a alça ↘ para redimensionar</span>
+        <span className="hint">drag the handle ↘ to resize</span>
       </section>
 
       <section className="panel dark">
-        <span className="caption">animação de varredura (pixel a pixel)</span>
+        <span className="caption">sweep animation (per pixel)</span>
         <PixelText
           text="HELLO"
           className="sweep"

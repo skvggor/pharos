@@ -1,14 +1,16 @@
 # digital-font
 
-Fonte de "display" em pixels para React: cada caractere é uma matriz `8×13` desenhada em um grid invisível, renderizada como quadrados. Glifos serifados, com zonas verticais para acento, ascendente, altura-x e descendente.
+A pixel "display" font for React: each character is a glyph drawn on a
+`12×18` grid and rendered as a field of squares. Serif glyphs, with vertical
+zones for accents, ascenders, x-height and descenders.
 
-## Instalação
+## Installation
 
 ```bash
 npm install digital-font
 ```
 
-## Uso
+## Usage
 
 ```tsx
 import { PixelText } from "digital-font";
@@ -19,80 +21,95 @@ export function App() {
 }
 ```
 
-## Props de `PixelText`
+## `PixelText` props
 
-| Prop            | Tipo               | Padrão         | Descrição                                  |
-| --------------- | ------------------ | -------------- | ------------------------------------------ |
-| `text`          | `string`           | —              | Texto a renderizar (obrigatório).          |
-| `pixelSize`     | `number \| string` | `6px`          | Tamanho de cada pixel.                      |
-| `gap`           | `number \| string` | `1px`          | Espaço entre pixels.                        |
-| `letterSpacing` | `number \| string` | `pixelSize`    | Espaço entre caracteres.                    |
-| `color`         | `string`           | `currentColor` | Cor do pixel aceso.                         |
-| `offColor`      | `string`           | `transparent`  | Cor do pixel apagado.                       |
-| `pixelShape`        | `PixelShape` | `dot`   | Forma do pixel: `dot`, `squircle`, `diamond`, `ring`, `square`. |
-| `smartCorners`      | `boolean`    | `false` | Arredonda os cantos externos por vizinhança (só `square`/`squircle`). |
-| `smoothness`        | `number`     | `0.6`   | Intensidade do arredondamento (`0` retrô → `1` orgânico).       |
-| `proportional`      | `boolean`    | `true`  | Apara o side-bearing de cada glifo (kerning justo). `false` = monospace. |
-| `spaceWidth`        | `number`     | `4`     | Largura do caractere de espaço, em células.                     |
-| `letterSpacing`     | `number \| string` | `0.5` célula | Vão entre caracteres (aceita negativo p/ aproximar). |
-| `fluid`             | `boolean`    | `false` | Largura segue o pai; altura mantém a proporção.                 |
-| `gapRatio`          | `number`     | `0.16`  | Gap entre pixels como fração do pixel (modo fluido).            |
-| `letterSpacingRatio`| `number`     | `0.5`   | Vão entre caracteres como fração do pixel (modo fluido).        |
+| Prop                 | Type               | Default        | Description                                                           |
+| -------------------- | ------------------ | -------------- | --------------------------------------------------------------------- |
+| `text`               | `string`           | —              | Text to render (required).                                            |
+| `pixelSize`          | `number \| string` | `6px`          | Size of each pixel cell.                                              |
+| `gap`                | `number \| string` | `1px`          | Gap between pixels.                                                   |
+| `letterSpacing`      | `number \| string` | `0.5` cell     | Gap between characters (accepts negative values to tighten).          |
+| `color`              | `string`           | `currentColor` | Lit pixel color.                                                      |
+| `offColor`           | `string`           | `transparent`  | Unlit pixel color.                                                    |
+| `pixelShape`         | `PixelShape`       | `dot`          | Pixel shape: `dot`, `squircle`, `diamond`, `ring`, `square`.          |
+| `smartCorners`       | `boolean`          | `false`        | Round outer corners by neighbour analysis (`square`/`squircle` only). |
+| `smoothness`         | `number`           | `0.6`          | Rounding strength (`0` retro → `1` organic).                          |
+| `proportional`       | `boolean`          | `true`         | Trim per-glyph side-bearing (tight kerning). `false` = monospace.     |
+| `spaceWidth`         | `number`           | `4`            | Space character width, in cells.                                      |
+| `fluid`              | `boolean`          | `false`        | Width follows the parent; height keeps the aspect ratio.             |
+| `gapRatio`           | `number`           | `0.16`         | Pixel gap as a fraction of the pixel (fluid mode).                   |
+| `letterSpacingRatio` | `number`           | `0.5`          | Letter gap as a fraction of the pixel (fluid mode).                  |
 
 ## Kerning
 
-Por padrão (`proportional`), cada glifo é aparado nas colunas vazias laterais e renderizado na sua largura de tinta real, com um vão pequeno e uniforme entre as letras — em vez do espaçamento largo e irregular do canvas monospace. O vão é ajustável via `letterSpacing` (e `letterSpacingRatio` no modo fluido), inclusive com valores negativos para sobrepor letras. Use `proportional={false}` para o visual monospace de display clássico.
+By default (`proportional`), each glyph is trimmed of its empty side columns
+and rendered at its real ink width, with a small, even gap between letters —
+instead of the wide, uneven spacing of a monospace canvas. The gap is
+adjustable through `letterSpacing` (and `letterSpacingRatio` in fluid mode),
+including negative values to overlap letters. Use `proportional={false}` for a
+classic monospace display look.
 
-## Largura fluida
+## Fluid width
 
-No modo `fluid`, o componente vira um *container query context* (`container-type: inline-size`) com `width: 100%`, e o tamanho do pixel passa a ser `calc(100cqw / unidades)`. Como gaps e espaçamento são proporções do pixel, **tudo escala junto** — a largura preenche o pai e a altura acompanha mantendo a razão de aspecto, sem JavaScript de medição.
+In `fluid` mode the component becomes a *container query context*
+(`container-type: inline-size`) with `width: 100%`, and the pixel size becomes
+`calc(100cqw / units)`. Because gaps and spacing are fractions of the pixel,
+**everything scales together** — the width fills the parent and the height
+follows to keep the aspect ratio, with no runtime measurement.
 
 ```tsx
 <div style={{ width: "100%" }}>
-  <PixelText text="Olá, Mundo!" fluid color="#fbbf24" />
+  <PixelText text="HELLO" fluid color="#fbbf24" />
 </div>
 ```
 
-## Animação por pixel
+## Per-pixel animation
 
-Todos os pixels (acesos e apagados) são renderizados como elementos no DOM. Cada pixel aceso expõe variáveis CSS para animar individualmente:
+Every pixel (lit and unlit) is rendered as a DOM element. Each lit pixel
+exposes CSS variables so it can be animated individually:
 
-- `--df-i`: índice sequencial do pixel aceso no texto inteiro.
-- `--df-n`: total de pixels acesos.
-- `--df-row` / `--df-col`: posição do pixel na matriz do caractere.
+- `--df-i`: sequential index of the lit pixel across the whole text.
+- `--df-n`: total number of lit pixels.
+- `--df-row` / `--df-col`: pixel position within the character matrix.
 
-Exemplo de varredura:
+Sweep example:
 
 ```css
-.minha-classe .digital-font__pixel--on {
-  animation: acende 1.6s ease-in-out infinite alternate;
+.my-class .digital-font__pixel--on {
+  animation: light-up 1.6s ease-in-out infinite alternate;
   animation-delay: calc(var(--df-i) * 28ms);
 }
 
-@keyframes acende {
+@keyframes light-up {
   from { opacity: 0.1; transform: scale(0.6); }
   to   { opacity: 1;   transform: scale(1); }
 }
 ```
 
-## Métrica do canvas (`8×13`)
+## Canvas metrics (`12×18`)
 
-| Linhas | Zona               |
-| ------ | ------------------ |
-| 0–1    | Acento             |
-| 2–9    | Corpo das maiúsculas |
-| 4–9    | Altura-x           |
-| 10–12  | Descendentes       |
+| Rows  | Zone           |
+| ----- | -------------- |
+| 0–2   | Accent         |
+| 3–13  | Cap body       |
+| 6–13  | x-height       |
+| 14–17 | Descender      |
 
-## Desenvolvimento
+Glyphs are authored as compact string matrices: `#` lit, `.` empty, and the
+numpad-mnemonic markers `7 9 1 3` for corner triangles (subpixel smoothing).
+
+## Development
 
 ```bash
-npm run dev            # demo visual
-npm test               # testes
-npm run test:coverage  # testes + cobertura
-npm run build          # build da lib + tipos
+npm run dev            # visual demo
+npm test               # tests
+npm run test:coverage  # tests + coverage
+npm run build          # build the library + types
 ```
 
 ## Status
 
-Conjunto de glifos atual é um **piloto** para validar a estética serifada (`A E H I L O T`, `l o p`, `Á`, `.`, `!`, espaço). O charset completo (latino PT/ES/FR + pontuação) será desenhado em seguida, com composição base + diacrítico para os acentuados.
+The current glyph set is a **pilot** to validate the serif aesthetic and the
+rendering pipeline: uppercase `A E H I L M O T`, lowercase `a d l n o p u`,
+the accented `á`, and `, . !` plus space. The full character set (Latin
+letters, digits and punctuation) is the next step, drawn to the same standard.
