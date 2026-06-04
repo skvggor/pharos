@@ -154,6 +154,9 @@ export function Hero() {
     };
 
     window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerdown", onMove);
+    window.addEventListener("pointerup", relax);
+    window.addEventListener("pointercancel", relax);
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
     document.addEventListener("mouseleave", relax);
@@ -163,6 +166,9 @@ export function Hero() {
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("pointerup", relax);
+      window.removeEventListener("pointercancel", relax);
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
       document.removeEventListener("mouseleave", relax);
@@ -236,6 +242,8 @@ export function Hero() {
 
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerdown", onMove);
+    window.addEventListener("pointerup", onLeave);
+    window.addEventListener("pointercancel", onLeave);
     document.addEventListener("mouseleave", onLeave);
     window.addEventListener("resize", sample);
     window.addEventListener("scroll", sample, { passive: true });
@@ -245,6 +253,8 @@ export function Hero() {
       cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerdown", onMove);
+      window.removeEventListener("pointerup", onLeave);
+      window.removeEventListener("pointercancel", onLeave);
       document.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("resize", sample);
       window.removeEventListener("scroll", sample);
@@ -254,6 +264,16 @@ export function Hero() {
   return (
     <section className={phase === "matrix" ? "hero hero--matrix" : "hero"}>
       {phase === "matrix" && <MatrixRain />}
+
+      <a
+        className="hero__repo"
+        href="https://github.com/skvggor/pharos"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <GithubLogo size={18} weight="bold" />
+        <span>skvggor/pharos</span>
+      </a>
 
       <div className="hero__stage">
         <button
