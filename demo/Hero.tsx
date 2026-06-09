@@ -1,10 +1,11 @@
 import { PixelText } from "@components/PixelText";
 import { GithubLogo, GlobeHemisphereWest, LinkedinLogo } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
-import type { TransitionEvent } from "react";
+import type { PointerEvent as ReactPointerEvent, TransitionEvent } from "react";
 import "./hero.css";
 
 type Phase = "idle" | "countdown" | "matrix";
+type HoldKind = null | "mouse" | "touch";
 
 const COUNTDOWN_FROM = 9;
 
@@ -86,14 +87,35 @@ export function Hero() {
   const ledsRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [count, setCount] = useState(COUNTDOWN_FROM);
-  const [holding, setHolding] = useState(false);
+  const [holding, setHolding] = useState<HoldKind>(null);
+  const [aboutOpen, setAboutOpen] = useState(false);
 
-  // Hover/hold the eye to darken the screen; complete it to start the
-  // countdown. Leave before it finishes and it just fades back.
-  const startHold = () => {
-    if (phase === "idle") setHolding(true);
+  // Hold the eye to darken the screen; complete the hold to start the
+  // countdown. Release before it finishes and it just fades back. Mouse keeps
+  // the hover gesture (enter/leave); touch and pen use a captured press so a
+  // small finger slide — or the page trying to scroll — can't steal the hold
+  // mid-way.
+  const startHover = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (phase === "idle" && event.pointerType === "mouse") setHolding("mouse");
   };
-  const stopHold = () => setHolding(false);
+  const stopHover = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === "mouse") {
+      setHolding((kind) => (kind === "mouse" ? null : kind));
+    }
+  };
+  const startPress = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (phase !== "idle" || event.pointerType === "mouse") return;
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture unsupported; the hold still works without it.
+    }
+    setHolding("touch");
+  };
+  const endPress = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.pointerType === "mouse") return;
+    setHolding((kind) => (kind === "touch" ? null : kind));
+  };
 
   const onEyeClick = () => {
     if (phase === "matrix") setPhase("idle");
@@ -101,7 +123,7 @@ export function Hero() {
 
   const onFadeEnd = (event: TransitionEvent<HTMLDivElement>) => {
     if (event.propertyName !== "opacity" || !holding) return;
-    setHolding(false);
+    setHolding(null);
     setCount(COUNTDOWN_FROM);
     setPhase("countdown");
   };
@@ -203,9 +225,11 @@ export function Hero() {
 
     const sample = () => {
       const bounds = container.getBoundingClientRect();
+      // The "about" toggle renders with Pharos too, but it shouldn't take part
+      // in the cursor light-off effect — only the name and divider do.
       const pixels = Array.from(
         container.querySelectorAll<HTMLElement>(".pharos__pixel--on"),
-      );
+      ).filter((el) => !el.closest(".hero__about-label"));
       cells = pixels.map((el) => {
         const r = el.getBoundingClientRect();
         return {
@@ -280,7 +304,7 @@ export function Hero() {
       {phase === "matrix" && <MatrixRain />}
 
       <a
-        className="hero__repo"
+        className="hero__repo hud-frame"
         href="https://github.com/skvggor/pharos"
         target="_blank"
         rel="noreferrer"
@@ -292,12 +316,21 @@ export function Hero() {
       <div className="hero__stage">
         <button
           type="button"
-          className="hero__eye"
+          className={[
+            "hero__eye",
+            holding && "is-holding",
+            holding === "touch" && "is-touch",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           ref={eyeRef}
           aria-label="Activate"
           onClick={onEyeClick}
-          onPointerEnter={startHold}
-          onPointerLeave={stopHold}
+          onPointerEnter={startHover}
+          onPointerLeave={stopHover}
+          onPointerDown={startPress}
+          onPointerUp={endPress}
+          onPointerCancel={endPress}
         >
           <div className="hero__lens">
             <span className="hero__pupil" />
@@ -320,6 +353,13 @@ export function Hero() {
               </text>
             </svg>
           </div>
+          <svg
+            className="hero__progress"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <circle cx="50" cy="50" r="47" pathLength="100" />
+          </svg>
         </button>
 
         <div className="hero__content" ref={ledsRef}>
@@ -342,45 +382,91 @@ export function Hero() {
             <PixelText
               text="-------"
               fluid
-              pixelShape="dot"
+              pixelShape="ring"
               color={phase === "matrix" ? "#22c55e" : "#ff2d1a"}
             />
           </div>
 
-          <p className="hero__role">
-            Made by{" "}
-            <a href="https://skvggor.dev" target="_blank" rel="noreferrer">
-              skvggor
-            </a>
-          </p>
+          <div className="hero__about-block">
+            <button
+              type="button"
+              className={
+                aboutOpen
+                  ? "hero__about-toggle hud-frame is-open"
+                  : "hero__about-toggle hud-frame"
+              }
+              aria-label="About the author"
+              aria-expanded={aboutOpen}
+              aria-controls="hero-about"
+              onClick={() => setAboutOpen((open) => !open)}
+            >
+              <span className="hero__about-label">
+                <PixelText
+                  text="about"
+                  pixelSize={2}
+                  gap={1}
+                  pixelShape="square"
+                  color={phase === "matrix" ? "#22c55e" : "#ff2d1a"}
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="hero__about-caret" aria-hidden="true" />
+            </button>
 
-          <p className="hero__line">
-            Front-end web developer with 15 years on large-scale projects across
-            advertising, marketing, telecom and developer tools. I fold
-            generative AI into a disciplined engineering process — XP, TDD,
-            security checklists — treating it as a tool, not a shortcut.
-          </p>
+            <div
+              id="hero-about"
+              className={aboutOpen ? "hero__about is-open" : "hero__about"}
+              inert={!aboutOpen}
+            >
+              <div className="hero__about-inner">
+                <p className="hero__role">
+                  Made by{" "}
+                  <a
+                    href="https://skvggor.dev"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Marcos Lima
+                  </a>
+                </p>
 
-          <nav className="hero__links" aria-label="Links">
-            {LINKS.map(({ href, label, Icon }) => (
-              <a
-                key={href}
-                href={href}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={label}
-                title={label}
-              >
-                <Icon size={24} weight="bold" />
-              </a>
-            ))}
-          </nav>
+                <p className="hero__line">
+                  Front-end web developer with 15 years on large-scale projects
+                  across advertising, marketing, telecom and developer tools. I
+                  fold generative AI into a disciplined engineering process —
+                  XP, TDD, security checklists — treating it as a tool, not a
+                  shortcut.
+                </p>
+
+                <nav className="hero__links" aria-label="Links">
+                  {LINKS.map(({ href, label, Icon }) => (
+                    <a
+                      key={href}
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={label}
+                      title={label}
+                    >
+                      <Icon size={24} weight="bold" />
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {phase === "idle" && (
         <div
-          className={holding ? "hero__fade is-holding" : "hero__fade"}
+          className={[
+            "hero__fade",
+            holding && "is-holding",
+            holding === "touch" && "is-touch",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           onTransitionEnd={onFadeEnd}
         />
       )}

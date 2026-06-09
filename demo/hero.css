@@ -8,6 +8,42 @@
   /* allow vertical scroll (content stays reachable) while horizontal drags
      still feed the eye/LED pointer effects */
   touch-action: pan-y;
+  /* kill the grey box the mobile browser paints over tapped elements */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* HUD corner brackets: only the four corners are drawn (eight gradient slices,
+   two arms per corner), in currentColor, on a ::before so the glow doesn't
+   blur the text. No closed border, no pill. */
+.hud-frame {
+  position: relative;
+}
+
+.hud-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --hud-arm: 9px;
+  --hud-thick: 1.5px;
+  background:
+    linear-gradient(currentColor 0 0) 0 0 / var(--hud-arm) var(--hud-thick),
+    linear-gradient(currentColor 0 0) 0 0 / var(--hud-thick) var(--hud-arm),
+    linear-gradient(currentColor 0 0) 100% 0 / var(--hud-arm) var(--hud-thick),
+    linear-gradient(currentColor 0 0) 100% 0 / var(--hud-thick) var(--hud-arm),
+    linear-gradient(currentColor 0 0) 0 100% / var(--hud-arm) var(--hud-thick),
+    linear-gradient(currentColor 0 0) 0 100% / var(--hud-thick) var(--hud-arm),
+    linear-gradient(currentColor 0 0) 100% 100% / var(--hud-arm) var(--hud-thick),
+    linear-gradient(currentColor 0 0) 100% 100% / var(--hud-thick) var(--hud-arm);
+  background-repeat: no-repeat;
+  /* glow follows the text colour (red, then green in matrix mode) */
+  filter: drop-shadow(0 0 2.5px currentColor);
+  transition: inset 0.25s ease;
+}
+
+/* scanner feel: the brackets pull outwards on hover */
+.hud-frame:hover::before {
+  inset: -3px;
 }
 
 .hero__repo {
@@ -18,26 +54,18 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 13px;
-  border-radius: 999px;
+  padding: 9px 12px;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
   font-size: 12px;
   letter-spacing: 0.02em;
   color: #fca5a5;
   text-decoration: none;
-  background: rgba(20, 8, 6, 0.55);
-  border: 1px solid rgba(255, 90, 71, 0.25);
-  backdrop-filter: blur(6px);
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
+  backdrop-filter: blur(5px);
+  transition: color 0.2s ease;
 }
 
 .hero__repo:hover {
   color: #ffd5cf;
-  border-color: #ff5a47;
-  background: rgba(40, 12, 10, 0.7);
 }
 
 .hero__stage {
@@ -61,6 +89,13 @@
   appearance: none;
   border: 0;
   cursor: pointer;
+  position: relative;
+  /* the eye owns the press gesture: don't let a touch on it scroll the page,
+     and suppress the long-press callout/selection on mobile */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   width: clamp(96px, 32vw, 200px);
   aspect-ratio: 1;
   border-radius: 50%;
@@ -193,6 +228,9 @@
   line-height: 0;
   filter: drop-shadow(0 0 5px rgba(255, 45, 26, 0.85))
     drop-shadow(0 0 14px rgba(255, 45, 26, 0.4));
+  /* the dash sits mid-grid, leaving empty rows below it; pull the next element
+     up so the gap to the "about" chip looks even */
+  margin-bottom: clamp(-26px, -5vw, -14px);
 }
 
 .hero__tagline {
@@ -228,13 +266,99 @@
   border-color: #ff5a47;
 }
 
+/* collapsible "about" block — everything about the author lives behind a
+   Pharos-rendered toggle, so the hero itself stays about the library */
+.hero__about-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* small static "about" label inside HUD corner brackets — fixed pixelSize (not
+   fluid), so it stays a tiny label instead of stretching to a heading */
+.hero__about-toggle {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px;
+  background: transparent;
+  color: #ff8a78;
+  opacity: 0.75;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s ease;
+}
+
+.hero__about-toggle:hover {
+  opacity: 1;
+}
+
+.hero__about-toggle:focus-visible {
+  outline: 2px solid rgba(255, 120, 100, 0.7);
+  outline-offset: 3px;
+}
+
+.hero__about-label {
+  display: block;
+  /* the dot-matrix box carries empty accent/descender rows; trim them so the
+     HUD brackets hug the visible word like the repo badge does */
+  margin-block: -7px;
+}
+
+/* the chip is purely a label: keep it out of every LED behaviour (the cursor
+   light-off is already skipped in JS; this kills the failing-LED flicker) */
+.hero__about-label .pharos__pixel--on {
+  animation: none !important;
+}
+
+.hero__about-caret {
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-1px) rotate(45deg);
+  transition: transform 0.3s ease;
+}
+
+.hero__about-toggle.is-open .hero__about-caret {
+  transform: translateY(1px) rotate(-135deg);
+}
+
+.hero__about {
+  display: grid;
+  grid-template-rows: 0fr;
+  width: 100%;
+  transition: grid-template-rows 0.45s ease;
+}
+
+.hero__about.is-open {
+  grid-template-rows: 1fr;
+}
+
+/* single overflow-hidden wrapper keeps every revealed element clipped together
+   while the row animates — no stray elements overlapping mid-transition */
+.hero__about-inner {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2.6vw, 16px);
+  padding-top: clamp(12px, 2.6vw, 18px);
+}
+
 .hero__line {
   max-width: 60ch;
   margin: 0;
   font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: clamp(13px, 3.6vw, 15px);
+  font-size: clamp(12px, 3.2vw, 14px);
   line-height: 1.65;
-  color: #f5b8b0;
+  /* kept low-contrast so it reads as a quiet footnote inside the panel */
+  color: #9c726c;
   text-wrap: pretty;
 }
 
@@ -243,7 +367,6 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
-  margin-top: 4px;
 }
 
 .hero__links a {
@@ -371,7 +494,46 @@
 
 .hero__fade.is-holding {
   opacity: 1;
-  transition: opacity 2.6s linear;
+  transition: opacity var(--hold-ms, 2600ms) linear;
+}
+
+/* touch holds are shorter — easier to keep a finger down on a small target */
+.hero__fade.is-holding.is-touch {
+  --hold-ms: 1500ms;
+}
+
+/* progress ring around the eye: fills while holding, in sync with the fade */
+.hero__progress {
+  position: absolute;
+  inset: -3%;
+  pointer-events: none;
+  opacity: 0;
+  transform: rotate(-90deg);
+  transition: opacity 0.3s ease;
+}
+
+.hero__progress circle {
+  fill: none;
+  stroke: rgba(255, 95, 60, 0.9);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  filter: drop-shadow(0 0 4px rgba(255, 60, 30, 0.85));
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.hero__eye.is-holding .hero__progress {
+  opacity: 1;
+}
+
+.hero__eye.is-holding .hero__progress circle {
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--hold-ms, 2600ms) linear;
+}
+
+.hero__eye.is-holding.is-touch {
+  --hold-ms: 1500ms;
 }
 
 /* easter egg: countdown overlay */
@@ -421,6 +583,14 @@
 
 .hero--matrix .hero__role,
 .hero--matrix .hero__line {
+  color: #86efac;
+}
+
+.hero--matrix .hero__about-toggle {
+  color: #4ade80;
+}
+
+.hero--matrix .hero__repo {
   color: #86efac;
 }
 
@@ -542,6 +712,11 @@
   }
 
   .hero__content {
+    align-items: flex-start;
+  }
+
+  .hero__about-block,
+  .hero__about-inner {
     align-items: flex-start;
   }
 
