@@ -1,6 +1,9 @@
 export { PixelText } from "@components/PixelText";
 export type { PixelTextProps } from "@components/PixelText";
 export { METRICS, isLit } from "@engine/metrics";
+export { countLit } from "@engine/lit";
+export { createGlyphRegistry } from "@engine/glyph-registry";
+export type { GlyphRegistry } from "@engine/glyph-registry";
 export {
   renderText,
   getGlyphMatrix,

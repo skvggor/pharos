@@ -1,9 +1,13 @@
 import "@components/pixel-text.css";
 
+import { smartCornerRadius } from "@engine/corners";
+import type { GlyphRegistry } from "@engine/glyph-registry";
+import { computeFluidUnits } from "@engine/layout";
+import { countLit } from "@engine/lit";
 import { isLit, METRICS } from "@engine/metrics";
 import { renderText } from "@engine/render-text";
 import { glyphBounds } from "@engine/spacing";
-import type { PixelMatrix, PixelShape } from "@domain/index";
+import type { PixelShape } from "@domain/index";
 import type { CSSProperties, HTMLAttributes } from "react";
 
 export interface PixelTextProps
@@ -23,6 +27,7 @@ export interface PixelTextProps
   fluid?: boolean;
   gapRatio?: number;
   letterSpacingRatio?: number;
+  registry?: GlyphRegistry;
   "aria-label"?: string;
 }
 
@@ -30,14 +35,6 @@ type PixelStyle = CSSProperties & Record<`--ph-${string}`, string | number>;
 
 function toCssLength(value: number | string): string {
   return typeof value === "number" ? `${value}px` : value;
-}
-
-function isFilled(matrix: PixelMatrix, row: number, column: number): boolean {
-  return Boolean(matrix[row]?.[column]) && matrix[row][column] !== "off";
-}
-
-function countLit(matrix: PixelMatrix): number {
-  return matrix.reduce((total, row) => total + row.filter(isLit).length, 0);
 }
 
 export function PixelText({
@@ -56,11 +53,12 @@ export function PixelText({
   fluid = false,
   gapRatio = 0.16,
   letterSpacingRatio = 0.5,
+  registry,
   className,
   style,
   ...rest
 }: PixelTextProps) {
-  const glyphs = renderText(text);
+  const glyphs = (registry ?? { renderText }).renderText(text);
   const ariaLabel = rest["aria-label"] ?? text;
   const columns = METRICS.width;
 
@@ -73,17 +71,11 @@ export function PixelText({
 
   const rootStyle: PixelStyle = { ...style };
   if (fluid) {
-    let units = 0;
-    advances.forEach((bounds, index) => {
-      if (bounds === null) {
-        units += spaceWidth;
-      } else {
-        const width = bounds.end - bounds.start + 1;
-        units += width + (width - 1) * gapRatio;
-      }
-      if (index < glyphs.length - 1) units += letterSpacingRatio;
+    rootStyle["--ph-units"] = computeFluidUnits(advances, {
+      spaceWidth,
+      gapRatio,
+      letterSpacingRatio,
     });
-    rootStyle["--ph-units"] = units > 0 ? units : 1;
     rootStyle["--ph-gap-ratio"] = gapRatio;
     rootStyle["--ph-letter-ratio"] = letterSpacingRatio;
   } else {
@@ -128,11 +120,14 @@ export function PixelText({
         const bounds = advances[glyphIndex];
 
         if (bounds === null) {
+          const spaceClassName = glyph.isFallback
+            ? "pharos__space pharos__space--fallback"
+            : "pharos__space";
           return (
             <span
               key={`${glyph.character}-${glyphIndex}`}
               aria-hidden="true"
-              className="pharos__space"
+              className={spaceClassName}
               style={
                 {
                   width: `calc(var(--ph-pixel-size) * ${spaceWidth})`,
@@ -180,27 +175,12 @@ export function PixelText({
                 if (cell !== "on" && cell !== "off") {
                   classes.push(`ph-tri-${cell}`);
                 } else if (roundCorners && cell === "on") {
-                  const tl =
-                    !isFilled(glyph.matrix, rowIndex - 1, columnIndex) &&
-                    !isFilled(glyph.matrix, rowIndex, columnIndex - 1)
-                      ? cornerRadius
-                      : "0";
-                  const tr =
-                    !isFilled(glyph.matrix, rowIndex - 1, columnIndex) &&
-                    !isFilled(glyph.matrix, rowIndex, columnIndex + 1)
-                      ? cornerRadius
-                      : "0";
-                  const br =
-                    !isFilled(glyph.matrix, rowIndex + 1, columnIndex) &&
-                    !isFilled(glyph.matrix, rowIndex, columnIndex + 1)
-                      ? cornerRadius
-                      : "0";
-                  const bl =
-                    !isFilled(glyph.matrix, rowIndex + 1, columnIndex) &&
-                    !isFilled(glyph.matrix, rowIndex, columnIndex - 1)
-                      ? cornerRadius
-                      : "0";
-                  pixelStyle.borderRadius = `${tl} ${tr} ${br} ${bl}`;
+                  pixelStyle.borderRadius = smartCornerRadius(
+                    glyph.matrix,
+                    rowIndex,
+                    columnIndex,
+                    cornerRadius,
+                  );
                 }
 
                 return (
