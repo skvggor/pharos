@@ -1,5 +1,7 @@
 import { PixelText } from "@components/PixelText";
+import { createGlyphRegistry } from "@engine/glyph-registry";
 import { METRICS } from "@engine/metrics";
+import type { GlyphSource } from "@domain/index";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -141,5 +143,42 @@ describe("PixelText", () => {
   it("merges a custom className", () => {
     const { container } = render(<PixelText text="O" className="neon" />);
     expect(container.querySelector(".pharos.neon")).toBeInTheDocument();
+  });
+
+  it("applies an explicit letterSpacing as a CSS variable", () => {
+    const { container } = render(<PixelText text="HI" letterSpacing="3px" />);
+    const root = container.querySelector<HTMLElement>(".pharos");
+    expect(root?.style.getPropertyValue("--ph-letter-spacing")).toBe("3px");
+  });
+
+  it("flags the spacer of an unknown character as a fallback", () => {
+    const { container } = render(<PixelText text="¥" />);
+    expect(
+      container.querySelector(".pharos__space--fallback"),
+    ).toBeInTheDocument();
+  });
+
+  it("does not flag the spacer of a real space", () => {
+    const { container } = render(<PixelText text="A B" />);
+    expect(container.querySelector(".pharos__space")).toBeInTheDocument();
+    expect(
+      container.querySelector(".pharos__space--fallback"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders glyphs from a custom registry", () => {
+    const registry = createGlyphRegistry();
+    const source: GlyphSource = Array.from(
+      { length: METRICS.height },
+      (_, row) =>
+        row === 5 ? "#".repeat(METRICS.width) : ".".repeat(METRICS.width),
+    );
+    registry.registerGlyph("¢", source);
+
+    const { container } = render(<PixelText text="¢" registry={registry} />);
+    expect(container.querySelector(".pharos__char")).toBeInTheDocument();
+    expect(
+      container.querySelector(".pharos__space--fallback"),
+    ).not.toBeInTheDocument();
   });
 });

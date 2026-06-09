@@ -48,6 +48,7 @@ export function App() {
 | `fluid`              | `boolean`          | `false`        | Width follows the parent; height keeps the aspect ratio.             |
 | `gapRatio`           | `number`           | `0.16`         | Pixel gap as a fraction of the pixel (fluid mode).                   |
 | `letterSpacingRatio` | `number`           | `0.5`          | Letter gap as a fraction of the pixel (fluid mode).                  |
+| `registry`           | `GlyphRegistry`    | global         | Isolated glyph registry to render from (see *Isolated registries*).  |
 
 ## Kerning
 
@@ -144,6 +145,36 @@ registerGlyph("€", [
   "............",
   "............",
 ]);
+```
+
+## Isolated registries
+
+`registerGlyph` mutates a process-wide glyph table. When that global state is a
+problem — SSR, tests, or two parts of an app that need different glyph sets —
+create an isolated registry and pass it to `PixelText`:
+
+```tsx
+import { createGlyphRegistry, PixelText } from "@skvggor/pharos";
+
+const registry = createGlyphRegistry();
+registry.registerGlyph("€", euroSource);
+
+<PixelText text="10€" registry={registry} />;
+```
+
+Each registry starts from a copy of the built-in glyphs and keeps its own parse
+cache, so registrations never leak across instances.
+
+## Missing glyphs
+
+Unknown characters fall back to a blank space. The spacer is tagged with
+`pharos__space--fallback`, so you can surface gaps in your character set:
+
+```css
+/* highlight missing glyphs while developing */
+.pharos__space--fallback {
+  outline: 1px dashed #f00;
+}
 ```
 
 ## Development
